@@ -10,8 +10,8 @@ class YOLOv11inference:
 
         # loading config from default.yaml
         config = load_config()
-        self.conf_threshold = config['model']['conf_threshold']
-        self.image_extensions = config['data']['image extensions']
+        self.conf_threshold = config["model"]["conf_threshold"]
+        self.extensions = config["data"]["image extensions"]
 
 
     def process_image(self, image_path):
@@ -39,6 +39,7 @@ class YOLOv11inference:
                 #"bbox": box.xyxy[0].tolist()
                 'count': 1
             })
+            
             class_counts[cls_id] = class_counts.get(cls_id, 0) + 1
 
             for det in detection:
