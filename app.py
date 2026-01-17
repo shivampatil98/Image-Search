@@ -74,3 +74,6 @@ else:
                     st.error(f"An error occurred while loading metadata: {str(e)}")
             else:
                 st.warning(f"Please enter a metadata file path")
+
+
+st.write(f"st.session_state.unique_classes: {st.session_state.unique_classes}")

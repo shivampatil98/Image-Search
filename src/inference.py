@@ -65,9 +65,10 @@ class YOLOv11inference:
 
         for image_path in image_paths:
             try:
-                metadata.extend(self.process_image(image_path))
+                metadata.append(self.process_image(image_path))
             except Exception as e:  
                 print(f"Error processing {image_path}: {e}")
                 continue    
-
+        
+        print(metadata)
         return metadata
