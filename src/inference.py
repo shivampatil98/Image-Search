@@ -3,10 +3,10 @@ from pathlib import Path
 from src.config import load_config
 
 class YOLOv11inference:
-    def __init__(self, model_name):
+    def __init__(self, model_name, device='cuda'):
         self.model = YOLO(model_name)
         self.device = device
-        self.model.to(device="cuda") 
+        self.model.to(self.device) 
 
         # loading config from default.yaml
         config = load_config()
@@ -62,3 +62,10 @@ class YOLOv11inference:
 
         for pattern in patterns:
             image_paths.extend(Path(directory).glob(pattern))
+
+        for image_path in image_paths:
+            try:
+                metadata.extend(self.process_image(image_path))
+            except Exception as e:  
+                print(f"Error processing {image_path}: {e}")
+                continue    

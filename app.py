@@ -2,12 +2,14 @@ import streamlit as st
 import sys 
 import time
 from pathlib import Path
+from src.inference import YOLOv11inference
+from src.utils import save_metadata
 
 sys.path.append(str(Path(__file__).parent))
 
 def init_session_state():
     session_defaults = {
-        "image_dir": "path",
+        "metadata": None,
     }
 
     for key, value in session_defaults.items():
@@ -39,8 +41,15 @@ if option == "Process new images":
             if image_dir:
                 try:
                     with st.spinner("Running object detection inference..."):
-                            time.sleep(3)  # Simulate some processing time in secs
-                            st.success("Search completed successfully!")
+                        inferencer = YOLOv11inference(model_path)
+                        metadata = inferencer.process_directory(image_dir)
+                        metadata_path = save_metadata(metadata, image_dir)
+                        st.success(f"Processed {len(metadata)} images: {metadata_path}")
+                        st.code(str(metadata_path))
+                        st.session_state.metadata = metadata
+
+                        time.sleep(3)  # Simulate some processing time in secs
+                        st.success("Search completed successfully!")
                 except Exception as e:
                     st.error(f"An error occurred during inference: {str(e)}")
             else:
