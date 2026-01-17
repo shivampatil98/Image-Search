@@ -51,7 +51,7 @@ if option == "Process new images":
                         st.session_state.metadata = metadata
                         st.session_state.unique_classes, st.session_state.count_options = get_unique_classes_counts(metadata)
 
-                        time.sleep(3)  # Simulate some processing time in secs
+                        #time.sleep(3)  # Simulate some processing time in secs
                         st.success("Search completed successfully!")
                 except Exception as e:
                     st.error(f"An error occurred during inference: {str(e)}")
@@ -68,7 +68,7 @@ else:
                             metadata = load_metadata(metadata_path)
                             st.session_state.metadata = metadata
                             st.session_state.unique_classes, st.session_state.count_options = get_unique_classes_counts(metadata)
-                            time.sleep(3)  # Simulate some loading time in secs
+                            #time.sleep(3)  # Simulate some loading time in secs
                             st.success(f"Metadata loaded successfully for {len(metadata)} images!")
                 except Exception as e:
                     st.error(f"An error occurred while loading metadata: {str(e)}")

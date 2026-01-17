@@ -5,7 +5,7 @@ import json
 def ensure_processed_dir(raw_path):
     raw_path = Path(raw_path) # Convert to Path object if not already
     processed_path = raw_path.parent.parent/"processed"/raw_path.name # Define processed directory path
-    processed_path.mkdir(parent=True, exist_ok=True) # Create directory if it doesn't exist
+    processed_path.mkdir(parents=True, exist_ok=True) # Create directory if it doesn't exist
     return processed_path
 
 # Function to save metadata as a JSON file
