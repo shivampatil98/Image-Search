@@ -1,4 +1,4 @@
-from ultalytics import YOLO
+from ultralytics import YOLO
 from pathlib import Path
 from src.config import load_config
 
@@ -69,3 +69,5 @@ class YOLOv11inference:
             except Exception as e:  
                 print(f"Error processing {image_path}: {e}")
                 continue    
+
+        return metadata
