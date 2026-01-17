@@ -1,36 +1,37 @@
 from ultalytics import YOLO
 from pathlib import Path
-
 from src.config import load_config
 
 class YOLOv11inference:
     def __init__(self, model_name):
-            self.model = YOLO(model_name)
-            self.model.to(device="cuda") 
+        self.model = YOLO(model_name)
+        self.device = device
+        self.model.to(device="cuda") 
 
-    config = load_config()
-    self.conf_threshold = config['model']['conf_threshold']
-    self.image_extensions = config8['data']['image exte8sions']
+        # loading config from default.yaml
+        config = load_config()
+        self.conf_threshold = config['model']['conf_threshold']
+        self.image_extensions = config['data']['image extensions']
 
 
-def process_image(self, image_path):
-      results = self.model.predict(
+    def process_image(self, image_path):
+      
+      # Run inference
+        results = self.model.predict(
             source=image_path,
             conf=self.conf_threshold,
             device=self.device
       )
 
-      return results
+    # process results
+        detection = []
+        class_counts = {}
 
-    detection = []
-    class_counts = {}
-
-    for result in results:
-        for box in result.boxes:
-            cls_id = int(box.cls[0])
-            conf = float(box.conf[0])
-            bbox = box.xyxy[0].tolist()
-
+        for result in results:
+            for box in result.boxes:
+                cls_id = int(box.cls[0])
+                conf = float(box.conf[0])
+                bbox = box.xyxy[0].tolist()
             detection.append({
                 'class_id': cls_id,
                 'confidence': conf,
@@ -43,13 +44,13 @@ def process_image(self, image_path):
             for det in detection:
                 det['count'] = class_counts[det['class_id']]
 
-    return {
-        'image_path': str(image_path),
-        'detection': detection,
-        'total_objects': len(detection),
-        'unique_class': list(class_counts.keys()),
-        'class_counts': class_counts
-    }
+            return {
+            'image_path': str(image_path),
+            'detection': detection,
+            'total_objects': len(detection),
+            'unique_class': list(class_counts.keys()),
+            'class_counts': class_counts
+            }
     
     def process_directory(self, directory):
         
