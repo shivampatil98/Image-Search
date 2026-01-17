@@ -3,13 +3,15 @@ import sys
 import time
 from pathlib import Path
 from src.inference import YOLOv11inference
-from src.utils import save_metadata
+from src.utils import save_metadata, load_metadata, get_unique_classes_counts
 
 sys.path.append(str(Path(__file__).parent))
 
 def init_session_state():
     session_defaults = {
         "metadata": None,
+        "unique_classes": [],
+        "count_options": {}
     }
 
     for key, value in session_defaults.items():
@@ -47,6 +49,7 @@ if option == "Process new images":
                         st.success(f"Processed {len(metadata)} images: {metadata_path}")
                         st.code(str(metadata_path))
                         st.session_state.metadata = metadata
+                        st.session_state.unique_classes, st.session_state.count_options = get_unique_classes_counts(metadata)
 
                         time.sleep(3)  # Simulate some processing time in secs
                         st.success("Search completed successfully!")
@@ -62,8 +65,11 @@ else:
             if metadata_path:
                 try:
                     with st.spinner("Loading metadata..."):
+                            metadata = load_metadata(metadata_path)
+                            st.session_state.metadata = metadata
+                            st.session_state.unique_classes, st.session_state.count_options = get_unique_classes_counts(metadata)
                             time.sleep(3)  # Simulate some loading time in secs
-                            st.success("Metadata loaded successfully!")
+                            st.success(f"Metadata loaded successfully for {len(metadata)} images!")
                 except Exception as e:
                     st.error(f"An error occurred while loading metadata: {str(e)}")
             else:
