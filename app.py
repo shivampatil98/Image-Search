@@ -218,10 +218,18 @@ if st.session_state.search_results:
 
                 meta_items = [f"{k}: {v}" for k, v in result['class_counts'].items() if k in search_params["selected_classes"]]
                         
-                # Display card
-                meta_str = ", ".join(meta_items)
-                st.markdown(f"**Metadata:** {meta_str}")
-
+                # Display card with image and metadata overlay
+                st.markdown(f"""
+                <div class="image-card">
+                    <div class="image-container">
+                        <img src="data:image/png;base64,{img_to_base64(img)}">
+                    </div>
+                    <div class="meta-overlay">
+                        <strong>{Path(result['image_path']).name}</strong><br>
+                        {", ".join(meta_items) if meta_items else "No matches"}
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
 
             except Exception as e:
                 st.error(f"Error loading image {result['image_path']}: {str(e)}")
