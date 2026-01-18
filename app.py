@@ -2,7 +2,7 @@ import streamlit as st
 import sys 
 import time
 from pathlib import Path
-from src.inference import YOLOv11inference
+from src.inference import YOLOv11Inference
 from src.utils import save_metadata, load_metadata, get_unique_classes_counts
 
 sys.path.append(str(Path(__file__).parent))
@@ -43,7 +43,7 @@ if option == "Process new images":
             if image_dir:
                 try:
                     with st.spinner("Running object detection inference..."):
-                        inferencer = YOLOv11inference(model_path)
+                        inferencer = YOLOv11Inference(model_path)
                         metadata = inferencer.process_directory(image_dir)
                         metadata_path = save_metadata(metadata, image_dir)
                         st.success(f"Processed {len(metadata)} images: {metadata_path}")
