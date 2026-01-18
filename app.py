@@ -11,7 +11,13 @@ def init_session_state():
     session_defaults = {
         "metadata": None,
         "unique_classes": [],
-        "count_options": {}
+        "count_options": {},
+        "search_results": [],
+        "search params": {
+            "search_mode": "Any of selected classes OR",
+            "selected_classes": [],
+            "thresholds": {}
+        }
     }
 
     for key, value in session_defaults.items():
@@ -76,4 +82,62 @@ else:
                 st.warning(f"Please enter a metadata file path")
 
 
-st.write(f"st.session_state.unique_classes: {st.session_state.unique_classes}")
+#st.write(f"st.session_state.unique_classes: {st.session_state.unique_classes}")
+
+if st.session_state.metadata:
+    st.header("Search Images by Detected Objects")
+
+    with st.container():
+        st.session_state.search_params["search_mode"] = st.radio("Select search type:", 
+                        ("Any of selected classes OR", "All selected Classes"), 
+                        horizontal=True, key="search_type")
+
+        st.session_state.search_params["selected_classes"] = st.multiselect(
+            "Select object classes to search for:",
+            options=st.session_state.unique_classes
+        )   
+
+
+        if st.session_state.search_params["selected_classes"]:
+            st.subheader("Set Minimum Confidence Thresholds for Selected Classes")
+            cols = st.columns(len(st.session_state.search_params["selected_classes"]))
+            for i, cls in enumerate(st.session_state.search_params["selected_classes"]):
+                with cols[i]:
+                    st.sessiomn_state.search_params["thresholds"][cls] = st.selectbox(
+                        f"Max count for class '{cls}':",
+                        options= ["None"] + st.session_state.count_options.get(cls, [])
+                )
+                    
+        if st.button("Search Images", type="primary") and st.session_state.select_params["selected_classes"]:
+            results = []
+            search_params = st.session_state.search_params
+
+            for item in st.session_state.metadata:
+                matches = False
+                class_matches = {}
+
+
+                for cls in search_params["selected_classes"]:
+                    class_detections = [det for det in item["detections"] if det["class"] == cls]
+                    class_count = len(class_detections)
+                    class_matches[cls] = False
+
+                    threshold = search_params["thresholds"].get(cls, "None")
+                    if threshold == "None" or class_count <= int(threshold):
+                        class_matches[cls] = (class_count >= 1) 
+                    else:
+                        class_matches[cls] = (class_count >= 1 and class_count <= int(threshold))
+
+
+                if search_params["search_mode"] == "Any of selected classes OR":
+                    matches = any(class_matches.values())
+
+                else:
+                    matches = all(class_matches.values())
+
+                if matches:
+                    results.append(item)
+
+            st.session_state.search_results = results
+
+        st.write(st.session_state.search_results)
