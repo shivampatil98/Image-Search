@@ -11,7 +11,7 @@ class YOLOv11inference:
         # loading config from default.yaml
         config = load_config()
         self.conf_threshold = config["model"]["conf_threshold"]
-        self.extensions = config["data"]["image extensions"]
+        self.extensions = config["data"]["extensions"]
 
 
     def process_image(self, image_path):
@@ -21,7 +21,7 @@ class YOLOv11inference:
             source=image_path,
             conf=self.conf_threshold,
             device=self.device
-      )
+        )
 
     # process results
         detection = []
@@ -29,10 +29,11 @@ class YOLOv11inference:
 
         for result in results:
             for box in result.boxes:
-                cls_id = int(box.cls[0])
+                cls_id = result.names[int(box.cls[0])]
                 conf = float(box.conf[0])
                 bbox = box.xyxy[0].tolist()
-            detection.append({
+
+                detection.append({
                 'class_id': cls_id,
                 'confidence': conf,
                 'bbox': bbox,
@@ -42,10 +43,10 @@ class YOLOv11inference:
             
             class_counts[cls_id] = class_counts.get(cls_id, 0) + 1
 
-            for det in detection:
-                det['count'] = class_counts[det['class_id']]
+        for det in detection:
+            det['count'] = class_counts[det['class_id']]
 
-            return {
+        return {
             'image_path': str(image_path),
             'detection': detection,
             'total_objects': len(detection),
@@ -68,8 +69,8 @@ class YOLOv11inference:
             try:
                 metadata.append(self.process_image(image_path))
             except Exception as e:  
-                print(f"Error processing {image_path}: {e}")
+                print(f"Error processing {image_path}: {str(e)}")
                 continue    
         
-        print(metadata)
+        #print(metadata)
         return metadata
