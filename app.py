@@ -5,6 +5,7 @@ import sys
 import time
 from PIL import Image, ImageDraw, ImageFont
 import base64
+import json
 from io import BytesIO
 from pathlib import Path
 from src.inference import YOLOv11Inference
@@ -118,12 +119,12 @@ if st.session_state.metadata:
             cols = st.columns(len(st.session_state.search_params["selected_classes"]))
             for i, cls in enumerate(st.session_state.search_params["selected_classes"]):
                 with cols[i]:
-                    st.sessiomn_state.search_params["thresholds"][cls] = st.selectbox(
+                    st.session_state.search_params["thresholds"][cls] = st.selectbox(
                         f"Max count for class '{cls}':",
                         options= ["None"] + st.session_state.count_options.get(cls, [])
                 )
-                    
-        if st.button("Search Images", type="primary") and st.session_state.select_params["selected_classes"]:
+
+        if st.button("Search Images", type="primary") and st.session_state.search_params["selected_classes"]:
             results = []
             search_params = st.session_state.search_params
 
@@ -190,9 +191,9 @@ if st.session_state.search_results:
                         font = ImageFont.load_default()
 
                     for det in result["detections"]:
-                        cls = det["class"]
-                        conf = det["confidence"]
-                        bbox = det["bbox"]  # [x1, y1, x2, y2]
+                        cls = det['class']
+                        #conf = det['confidence']
+                        bbox = det['bbox']  # [x1, y1, x2, y2]
 
                         if cls in search_params["selected_classes"]:
                             box_color = "#23ff2e"
@@ -207,14 +208,14 @@ if st.session_state.search_results:
 
                         if cls in search_params["selected_classes"] and not st.session_state.highlight_matches:
                             label = f"{cls} {det['confidence']:.2f}"
-                            text_bbox = draw.textbbox ((0,0), label, font=font)
+                            text_bbox = draw.textbbox((0,0), label, font=font)
                             text_width = text_bbox[2] - text_bbox[0] #x2 - x1
                             text_height = text_bbox[3] - text_bbox[1] #y2 - y1
 
                             draw.rectangle([bbox[0], bbox[1], bbox[0] + text_width + 8, bbox[1] + text_height + 4], 
                                             outline = box_color, fill=box_color)
                             
-                        draw.text((bbox[0] + 4, bbox[1] + 2), label, fill="white", font=font)
+                            draw.text((bbox[0] + 4, bbox[1] + 2), label, fill="white", font=font)
 
                 meta_items = [f"{k}: {v}" for k, v in result['class_counts'].items() if k in search_params["selected_classes"]]
                         
@@ -239,7 +240,7 @@ if st.session_state.search_results:
     with st.expander("Export Search Results Metadata"):
         st.download_button(
             label="Download Metadata as JSON",
-            data=st.json.dumps(results, indent=4),
+            data=json.dumps(results, indent=4),
             file_name="search_results_metadata.json",
             mime="application/json"
         )
