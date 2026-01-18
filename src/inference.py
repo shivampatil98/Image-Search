@@ -6,7 +6,7 @@ from pathlib import Path
 from src.config import load_config
 
 class YOLOv11Inference:
-    def __init__(self, model_name, device='cpu'):
+    def __init__(self, model_name, device='gpu' if YOLO.is_cuda_available() else 'cpu'):
         self.model = YOLO(model_name)
         self.device = device
         self.model.to(self.device)
