@@ -30,18 +30,18 @@ def load_metadata(metadata_path):
             raise FileNotFoundError(f"Metadata file not found at {metadata_path} or {processed_path}")
         
     with open(metadata_path, 'r') as f: # Open file for reading        
-        metadata = json.load(f) # Load JSON data
+        return json.load(f) # Load JSON data
 
 def get_unique_classes_counts(metadata):
     unique_classes = set()
     count_options = {}
 
     for item in metadata:
-        for cls in item['detection']:
-            unique_classes.add(cls['class_id'])
-            if cls['class_id'] not in count_options:
-                count_options[cls['class_id']] = set()
-            count_options[cls['class_id']].add(cls['count'])    
+        for cls in item['detections']:
+            unique_classes.add(cls['class'])
+            if cls['class'] not in count_options:
+                count_options[cls['class']] = set()
+            count_options[cls['class']].add(cls['count'])    
 
     sorted_unique_classes = sorted(unique_classes)
     for cls_id in count_options:

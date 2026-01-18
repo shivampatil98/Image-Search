@@ -12,7 +12,7 @@ from src.utils import save_metadata, load_metadata, get_unique_classes_counts
 
 sys.path.append(str(Path(__file__).parent))
 
-def img_to_base64(image : Image.image) -> str:
+def img_to_base64(image: Image.Image) -> str:
     """Convert a PIL Image to a base64 string."""
     buffered = BytesIO()
     image.save(buffered, format="PNG")
@@ -25,7 +25,7 @@ def init_session_state():
         "unique_classes": [],
         "count_options": {},
         "search_results": [],
-        "search params": {
+        "search_params": {
             "search_mode": "Any of selected classes OR",
             "selected_classes": [],
             "thresholds": {}
@@ -97,7 +97,7 @@ else:
                 st.warning(f"Please enter a metadata file path")
 
 
-#st.write(f"st.session_state.unique_classes: {st.session_state.unique_classes}")
+#st.write(f"st.session_state.unique_classes: {st.session_state.unique_options}")
 
 if st.session_state.metadata:
     st.header("Search Images by Detected Objects")
@@ -114,7 +114,7 @@ if st.session_state.metadata:
 
 
         if st.session_state.search_params["selected_classes"]:
-            st.subheader("Set Minimum Confidence Thresholds for Selected Classes")
+            st.subheader("Set Minimum Confidence Thresholds")
             cols = st.columns(len(st.session_state.search_params["selected_classes"]))
             for i, cls in enumerate(st.session_state.search_params["selected_classes"]):
                 with cols[i]:
