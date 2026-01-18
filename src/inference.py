@@ -14,7 +14,11 @@ class YOLOv11Inference:
         # loading config from default.yaml
         config = load_config()
         self.conf_threshold = config["model"]["conf_threshold"]
-        self.extensions = config["data"]["extensions"]
+        #self.extensions = config["data"]["extensions"]
+        self.extensions = config.get("data", {}).get(
+            "extensions",
+            [".jpg", ".jpeg", ".png"]
+        )
 
     def process_image(self, image_path):
 

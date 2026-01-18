@@ -1,11 +1,23 @@
+from turtle import color
+from narwhals import col
 import streamlit as st
 import sys 
 import time
+from PIL import Image, ImageDraw, ImageFont
+import base64
+from io import BytesIO
 from pathlib import Path
 from src.inference import YOLOv11Inference
 from src.utils import save_metadata, load_metadata, get_unique_classes_counts
 
 sys.path.append(str(Path(__file__).parent))
+
+def img_to_base64(image : Image.image) -> str:
+    """Convert a PIL Image to a base64 string."""
+    buffered = BytesIO()
+    image.save(buffered, format="PNG")
+    img_str = base64.b64encode(buffered.getvalue()).decode()
+    return img_str
 
 def init_session_state():
     session_defaults = {
@@ -17,7 +29,10 @@ def init_session_state():
             "search_mode": "Any of selected classes OR",
             "selected_classes": [],
             "thresholds": {}
-        }
+        },
+        "show_boxes": True,
+        "grid_columns": 3,
+        "highlight_matches": True
     }
 
     for key, value in session_defaults.items():
@@ -140,4 +155,83 @@ if st.session_state.metadata:
 
             st.session_state.search_results = results
 
-        st.write(st.session_state.search_results)
+        #st.write(st.session_state.search_results)
+
+if st.session_state.search_results:
+    results =  st.session_state.search_results
+    search_params = st.session_state.search_params
+
+    st.subheader(f"Search Results: Found {len(results)} images matching criteria ({search_params['search_mode']})")
+
+    with st.expander("Display Options", expanded=True):
+        cols = st.columns(3)
+        with cols[0]:
+            st.session_state.show_boxes = st.checkbox("Show bounding boxes on images", value=st.session_state.show_boxes)
+        with cols[1]:
+            st.session_state.grid_columns = st.slider("Grid columns", min_value=1, max_value=6, value=st.session_state.grid_columns)
+        with cols[2]:
+            st.session_state.highlight_matches = st.checkbox("Highlight matched classes", value=st.session_state.highlight_matches)
+
+
+    #create grid using streamlit columns
+    grid_cols = st.columns(st.session_state.grid_columns)
+    col.index = 0
+
+    for result in results:
+        with grid_cols[col.index]:
+            try:
+                img = Image.open(result["image_path"])
+                draw = ImageDraw.Draw(img)
+            
+                if st.session_state.show_boxes:
+                    try:
+                        font = ImageFont.truetype("arial.ttf", 15)
+                    except:
+                        font = ImageFont.load_default()
+
+                    for det in result["detections"]:
+                        cls = det["class"]
+                        conf = det["confidence"]
+                        bbox = det["bbox"]  # [x1, y1, x2, y2]
+
+                        if cls in search_params["selected_classes"]:
+                            box_color = "#23ff2e"
+                            thickness = 3
+                        elif not st.session_state.highlight_matches:
+                            box_color = "#ff3838"
+                            thickness = 1
+                        else:
+                            continue
+
+                        draw.rectangle(bbox, outline=box_color, width=thickness)
+
+                        if cls in search_params["selected_classes"] and not st.session_state.highlight_matches:
+                            label = f"{cls} {det['confidence']:.2f}"
+                            text_bbox = draw.textbbox ((0,0), label, font=font)
+                            text_width = text_bbox[2] - text_bbox[0] #x2 - x1
+                            text_height = text_bbox[3] - text_bbox[1] #y2 - y1
+
+                            draw.rectangle([bbox[0], bbox[1], bbox[0] + text_width + 8, bbox[1] + text_height + 4], 
+                                            outline = box_color, fill=box_color)
+                            
+                        draw.text((bbox[0] + 4, bbox[1] + 2), label, fill="white", font=font)
+
+                meta_items = [f"{k}: {v}" for k, v in result['class_counts'].items() if k in search_params["selected_classes"]]
+                        
+                # Display card
+                meta_str = ", ".join(meta_items)
+                st.markdown(f"**Metadata:** {meta_str}")
+
+
+            except Exception as e:
+                st.error(f"Error loading image {result['image_path']}: {str(e)}")
+
+        col.index = (col.index + 1) % st.session_state.grid_columns
+
+    with st.expander("Export Search Results Metadata"):
+        st.download_button(
+            label="Download Metadata as JSON",
+            data=st.json.dumps(results, indent=4),
+            file_name="search_results_metadata.json",
+            mime="application/json"
+        )
